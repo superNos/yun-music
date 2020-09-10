@@ -11,11 +11,9 @@ import {
   getSingerList, 
   getHotSingerList, 
   changeEnterLoading, 
-  changePageCount, 
-  refreshMoreSingerList, 
+  changePageCount,
   changePullUpLoading, 
-  changePullDownLoading, 
-  refreshMoreHotSingerList 
+  changePullDownLoading,
 } from './store/actionCreators';
 import  LazyLoad, {forceCheck} from 'react-lazyload';
 import Scroll from './../../baseUI/Scroller';
@@ -30,29 +28,28 @@ function Singers (props) {
 
 
     const handlePullUp = () => {
-        pullUpRefreshDispatch(category, alpha, category === '', pageCount);
+        pullUpRefreshDispatch(category, area, alpha, pageCount)
     };
 
     const handlePullDown = () => {
-        pullDownRefreshDispatch(category, alpha);
+        pullDownRefreshDispatch(category, area, alpha, pageCount);
     };
     
     const { singerList, enterLoading, pullUpLoading, pullDownLoading, pageCount } = props;
     const { getHotSingerDispatch, updateDispatch, pullDownRefreshDispatch, pullUpRefreshDispatch } = props;
-
     let handleUpdateAlpha = (val) => {
         setAlpha(val);
-        updateDispatch(category, area, val);
+        updateDispatch(category, area, val, pageCount);
     };
       
     let handleUpdateCatetory = (val) => {
         setCategory(val);
-        updateDispatch(val, area, alpha);
+        updateDispatch(val, area, alpha, pageCount);
     };
 
     let handleUpdateArea = (val) => {
         setArea(val)
-        updateDispatch(category, val, alpha);
+        updateDispatch(category, val, alpha, pageCount);
     }
 
     useEffect(() => {
@@ -79,16 +76,16 @@ function Singers (props) {
         </List>
         )
     };
-
   return (
       <div>
         <NavContainer>
             <Horizen list={categoryTypes} title={"分类:"} handleClick={(val) => handleUpdateCatetory(val)} oldVal={category}></Horizen>
-            <Horizen list={areaTypes} title={"国家:"} handleClick={(val) => handleUpdateCatetory(val)} oldVal={area}></Horizen>
+            <Horizen list={areaTypes} title={"国家:"} handleClick={(val) => handleUpdateArea(val)} oldVal={area}></Horizen>
             <Horizen list={alphaTypes} title={"首字母:"} handleClick={val => handleUpdateAlpha(val)} oldVal={alpha}></Horizen>
         </NavContainer> 
         <ListContainer>
             <Scroll
+            refresh
             pullUp={ handlePullUp }
             pullDown = { handlePullDown }
             pullUpLoading = { pullUpLoading }
@@ -97,7 +94,9 @@ function Singers (props) {
             >
             { renderSingerList() }
             </Scroll>
-            {/* <Loading show={enterLoading}></Loading> */}
+            {
+              enterLoading && <Loading></Loading>
+            }
         </ListContainer>
       </div>
   )
@@ -113,33 +112,26 @@ const mapStateToProps = (state) => ({
   const mapDispatchToProps = (dispatch) => {
     return {
       getHotSingerDispatch() {
+        dispatch(changeEnterLoading(true));
         dispatch(getHotSingerList());
       },
-      updateDispatch(category, area, alpha) {
+      updateDispatch(category, area, alpha, count) {
         dispatch(changePageCount(0));
         dispatch(changeEnterLoading(true));
-        dispatch(getSingerList(category, area, alpha));
-        
+        dispatch(getSingerList(category, area, alpha, count));
       },
       // 滑到最底部刷新部分的处理
-      pullUpRefreshDispatch(category, alpha, hot, count) {
+      pullUpRefreshDispatch(category, area, alpha, count) {
         dispatch(changePullUpLoading(true));
         dispatch(changePageCount(count+1));
-        if(hot){
-          dispatch(refreshMoreHotSingerList());
-        } else {
-          dispatch(refreshMoreSingerList(category, alpha));
-        }
+        dispatch(getSingerList(category, area, alpha, count));
       },
       //顶部下拉刷新
-      pullDownRefreshDispatch(category, alpha) {
-        dispatch(changePullDownLoading(true));
+      pullDownRefreshDispatch(category, area, alpha, count) {
+        dispatch(changePullDownLoading(true))
         dispatch(changePageCount(0));
-        if(category === '' && alpha === ''){
-          dispatch(getHotSingerList());
-        } else {
-          dispatch(getSingerList(category, alpha));
-        }
+        dispatch(changeEnterLoading(true));
+        dispatch(getSingerList(category, area, alpha, count));
       }
     }
   };   

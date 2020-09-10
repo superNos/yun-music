@@ -3,7 +3,7 @@ import * as actionTypes from './constants'
 
 const defaultState = fromJS({
     singerList: [],
-    enterLoading: true,     //控制进场Loading
+    enterLoading: false,     //控制进场Loading
     pullUpLoading: false,   //控制上拉加载动画
     pullDownLoading: false, //控制下拉加载动画
     pageCount: 0
